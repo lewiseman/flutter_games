@@ -1,0 +1,7 @@
+{
+  "files.exclude": {
+    "lib/main.dart": true,
+    "lib/games/snake": true,
+    "linux": true
+  }
+}
