@@ -22,3 +22,4 @@ flutter:
 
   assets:
     - assets/match3/images/
+    - assets/match3/images/tiles/

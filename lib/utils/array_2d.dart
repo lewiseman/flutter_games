@@ -1,9 +1,16 @@
-class Array2d<T> {
-  final List<List<T>> array;
+import 'package:flutter_games/games/match3/models/tile.dart';
 
-  Array2d(int rows, int columns) : array = List<List<T>>.empty();
+class Array2d {
+  final List<List<Tile?>> array;
 
-  List<T> operator [](int x) => array[x];
+  Array2d(int rows, int columns)
+      : array = List.generate(rows,
+            (index) => List.generate(columns, (index) => null, growable: false),
+            growable: false);
 
-  Array2d.empty() : array = List<List<T>>.empty();
+  List<Tile?> operator [](int x) => array[x];
+
+  set tile(Tile tile) => array[tile.row][tile.col] = tile;
+
+  Array2d.empty() : array = List<List<Tile>>.empty();
 }

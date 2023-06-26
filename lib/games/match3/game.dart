@@ -17,16 +17,70 @@ class Game extends StatefulWidget {
 }
 
 class _GameState extends State<Game> {
-  late final GameController _gameController = GameController(widget.level);
+  late double boardSize = _calcBoardSize();
+
+  late final GameController _gameController = GameController(
+    widget.level,
+    boardSize / widget.level.numberOfCols,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    boardSize = _calcBoardSize();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 211, 253, 228),
       body: Column(
         children: [
-          ..._gameController.grid.array.map((e) => Text('data'))
+          Row(
+            children: [
+              IconButton(
+                onPressed: Navigator.of(context).pop,
+                iconSize: 35,
+                icon: Image.asset('assets/match3/images/cancel.png'),
+              )
+            ],
+          ),
+          const Spacer(),
+          SizedBox(
+            width: boardSize,
+            height: boardSize,
+            child: GestureDetector(
+              onPanStart: _gameController.onFingerStart,
+              onPanUpdate: _gameController.onFingerMove,
+              child: Stack(
+                children: [
+                  for (int row = 0; row < widget.level.numberOfRows; row++)
+                    for (int col = 0; col < widget.level.numberOfCols; col++)
+                      () {
+                        final tile = _gameController.tiles[row][col];
+                        if (tile != null) {
+                          return tile.widget;
+                        }
+                        return const SizedBox.shrink();
+                      }()
+                ],
+              ),
+            ),
+          ),
+          const Spacer()
         ],
       ),
     );
+  }
+
+  double _calcBoardSize() {
+    final screenSize = MediaQuery.sizeOf(context);
+    final desiredBoardSize = screenSize.width - 32;
+    return desiredBoardSize < 550.0 ? desiredBoardSize : 550.0;
   }
 }
