@@ -59,10 +59,18 @@ class GameController with ChangeNotifier {
 
   void tileAnimation() {
     if (tileAnimationController.isCompleted) {
+      // after animation is completed swap the tiles position on grid;
       tiles.swap(activeTileInfo!.tile, activeTileInfo!.destination);
-      print(tiles.findMatches());
-      activeTileInfo = null;
-      tileAnimationController.reset();
+      final matches = tiles.findMatches();
+      if (matches.isEmpty) {
+        // TODO : Add a swap back 🧠 not sure though 
+        tileAnimationController.reverse();
+      } else {
+        activeTileInfo = null;
+        tileAnimationController.reset();
+        tiles.removeMatches(matches);
+        notifyListeners();
+      }
     }
     if (activeTileInfo != null) {
       tiles[activeTileInfo!.tile.row][activeTileInfo!.tile.col] =

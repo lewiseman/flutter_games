@@ -110,4 +110,10 @@ class Array2d {
 
     return matches;
   }
+
+  removeMatches(Set<(int, int)> matches) {
+    for (final match in matches) {
+      array[match.$1][match.$2] = null;
+    }
+  }
 }
