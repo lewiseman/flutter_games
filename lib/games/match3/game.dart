@@ -16,12 +16,13 @@ class Game extends StatefulWidget {
   State<Game> createState() => _GameState();
 }
 
-class _GameState extends State<Game> {
+class _GameState extends State<Game> with SingleTickerProviderStateMixin {
   late double boardSize = _calcBoardSize();
 
   late final GameController _gameController = GameController(
     widget.level,
     boardSize / widget.level.numberOfCols,
+    this,
   );
 
   @override
@@ -39,42 +40,57 @@ class _GameState extends State<Game> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 211, 253, 228),
-      body: Column(
-        children: [
-          Row(
-            children: [
-              IconButton(
-                onPressed: Navigator.of(context).pop,
-                iconSize: 35,
-                icon: Image.asset('assets/match3/images/cancel.png'),
-              )
-            ],
-          ),
-          const Spacer(),
-          SizedBox(
-            width: boardSize,
-            height: boardSize,
-            child: GestureDetector(
-              onPanStart: _gameController.onFingerStart,
-              onPanUpdate: _gameController.onFingerMove,
-              child: Stack(
-                children: [
-                  for (int row = 0; row < widget.level.numberOfRows; row++)
-                    for (int col = 0; col < widget.level.numberOfCols; col++)
-                      () {
-                        final tile = _gameController.tiles[row][col];
-                        if (tile != null) {
-                          return tile.widget;
-                        }
-                        return const SizedBox.shrink();
-                      }()
-                ],
-              ),
-            ),
-          ),
-          const Spacer()
-        ],
-      ),
+      body: ListenableBuilder(
+          listenable: _gameController,
+          builder: (context, _) {
+            return Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: MediaQuery.paddingOf(context).top,
+                    left: 16,
+                    right: 16,
+                  ),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: Navigator.of(context).pop,
+                        iconSize: 35,
+                        icon: Image.asset('assets/match3/images/cancel.png'),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                SizedBox(
+                  width: boardSize,
+                  height: boardSize,
+                  child: GestureDetector(
+                    onPanStart: _gameController.onFingerStart,
+                    onPanUpdate: _gameController.onFingerMove,
+                    child: Stack(
+                      children: [
+                        for (int row = 0;
+                            row < widget.level.numberOfRows;
+                            row++)
+                          for (int col = 0;
+                              col < widget.level.numberOfCols;
+                              col++)
+                            () {
+                              final tile = _gameController.tiles[row][col];
+                              if (tile != null) {
+                                return tile.widget;
+                              }
+                              return const SizedBox.shrink();
+                            }()
+                      ],
+                    ),
+                  ),
+                ),
+                const Spacer()
+              ],
+            );
+          }),
     );
   }
 

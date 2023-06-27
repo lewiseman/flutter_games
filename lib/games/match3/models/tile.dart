@@ -4,7 +4,7 @@ class Tile {
   final TileType type;
   final int row;
   final int col;
-  final double x;
+  double x;
   final double y;
   final double size;
 
@@ -17,14 +17,50 @@ class Tile {
     required this.size,
   });
 
-  Widget get widget => Positioned(
-        left: x,
-        top: y,
-        child: Image.asset(
-          type.img,
-          height: size,
-        ),
-      );
+  Widget get widget {
+    // print('x=$x    y=$y');
+    return Positioned(
+      left: x,
+      top: y,
+      child: Image.asset(
+        type.img,
+        height: size,
+      ),
+    );
+  }
+
+  Tile move(Moving direction, double value, double total) {
+    double move = (value * size) / total;
+    double newX = x;
+    double newY = y;
+    if (direction == Moving.up) newY -= move;
+    if (direction == Moving.down) newY += move;
+    if (direction == Moving.left) newX -= move;
+    if (direction == Moving.right) newX += move;
+    return Tile(type: type, row: row, col: col, x: newX, y: newY, size: size);
+  }
+
+  Tile moveDestination(Moving direction, double value, double total) {
+    double move = (value * size) / total;
+    double newX = x;
+    double newY = y;
+    if (direction == Moving.up) newY += move;
+    if (direction == Moving.down) newY -= move;
+    if (direction == Moving.left) newX += move;
+    if (direction == Moving.right) newX -= move;
+    return Tile(type: type, row: row, col: col, x: newX, y: newY, size: size);
+  }
+
+  Tile swapped(Tile destination) {
+    return Tile(
+      type: type,
+      row: destination.row,
+      col: destination.col,
+      x: x,
+      y: y,
+      size: size,
+    );
+  }
 }
 
 enum TileType {
@@ -54,3 +90,5 @@ enum TileType {
     };
   }
 }
+
+enum Moving { left, right, up, down }
