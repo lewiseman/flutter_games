@@ -51,16 +51,29 @@ class Tile {
     return Tile(type: type, row: row, col: col, x: newX, y: newY, size: size);
   }
 
-  Tile swapped(Tile destination) {
+  Tile swapped((int, int) destination) {
     return Tile(
       type: type,
-      row: destination.row,
-      col: destination.col,
+      row: destination.$1,
+      col: destination.$2,
       x: x,
       y: y,
       size: size,
     );
   }
+
+  Tile falling(double covered) {
+    double toadd = covered - (y - (row * size));
+    return Tile(
+      type: type,
+      row: row,
+      col: col,
+      x: x,
+      y: y+toadd,
+      size: size,
+    );
+  }
+
 }
 
 enum TileType {

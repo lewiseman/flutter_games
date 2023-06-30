@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_games/games/match3/models/tile.dart';
 
 class Array2d {
@@ -11,15 +13,63 @@ class Array2d {
             growable: false);
 
   List<Tile?> operator [](int x) => array[x];
+  final colorsTypes = [
+    TileType.blue,
+    TileType.red,
+    TileType.green,
+    TileType.purple,
+    TileType.orange
+  ];
 
   set tile(Tile tile) => array[tile.row][tile.col] = tile;
   int get length => array.length;
 
+  void shuffle(double tileSize) {
+    double left = 0;
+    double top = 0;
+    final random = Random();
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < columns; j++) {
+        if (j == 0) left = 0;
+        Tile tt;
+        do {
+          tt = Tile(
+            type: colorsTypes[random.nextInt(colorsTypes.length)],
+            row: i,
+            col: j,
+            x: left,
+            y: top,
+            size: tileSize,
+          );
+        } while (hasImmediateMatch(tt));
+        tile = tt;
+        left += tileSize;
+      }
+      top += tileSize;
+    }
+  }
+
   void swap(Tile from, Tile to) {
     final tempTo = array[to.row][to.col]!;
     final tempFrom = array[from.row][from.col]!;
-    array[to.row][to.col] = tempFrom.swapped(tempTo);
-    array[from.row][from.col] = tempTo.swapped(tempFrom);
+    array[to.row][to.col] = tempFrom.swapped((tempTo.row, tempTo.col));
+    array[from.row][from.col] = tempTo.swapped((tempFrom.row, tempFrom.col));
+  }
+
+  void swapFall(List<({(int, int) from, (int, int) to})> fallingTiles) {
+    for (var tm in fallingTiles) {
+      array[tm.to.$1][tm.to.$2] = array[tm.from.$1][tm.from.$2]!.swapped(tm.to);
+      array[tm.from.$1][tm.from.$2] = null;
+    }
+  }
+
+  void fall(
+      {required (int, int) pos,
+      required double distance,
+      required double value}) {
+    array[pos.$1][pos.$2] = array[pos.$1][pos.$2]!.falling(
+      (value * distance) / 100,
+    );
   }
 
   bool hasImmediateMatch(Tile tile) {
@@ -115,5 +165,33 @@ class Array2d {
     for (final match in matches) {
       array[match.$1][match.$2] = null;
     }
+  }
+
+  List<({(int, int) from, (int, int) to})> fallingTiles() {
+    List<({(int, int) from, (int, int) to})> fallingTiles = [];
+
+    // Check each cell for potential falling tiles
+    for (int row = 0; row < rows; row++) {
+      for (int column = 0; column < columns; column++) {
+        Tile? tile = array[row][column];
+        if (tile == null) continue;
+
+        int destinationRow = row;
+        // Find the first available empty space below the current tile
+        while (destinationRow < rows - 1 &&
+            array[destinationRow + 1][column] == null) {
+          destinationRow++;
+        }
+
+        // If the tile will fall to a different position, add it to the list
+        if (destinationRow != row) {
+          final fallingTile =
+              (from: (row, column), to: (destinationRow, column));
+          fallingTiles.add(fallingTile);
+        }
+      }
+    }
+
+    return fallingTiles;
   }
 }

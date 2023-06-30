@@ -16,7 +16,7 @@ class Game extends StatefulWidget {
   State<Game> createState() => _GameState();
 }
 
-class _GameState extends State<Game> with SingleTickerProviderStateMixin {
+class _GameState extends State<Game> with TickerProviderStateMixin {
   late double boardSize = _calcBoardSize();
 
   late final GameController _gameController = GameController(

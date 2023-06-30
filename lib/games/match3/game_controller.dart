@@ -16,62 +16,44 @@ class GameController with ChangeNotifier {
       lowerBound: 0,
       upperBound: 100,
     );
+    gravityAnimationController = AnimationController(
+      vsync: vsync,
+      duration: const Duration(milliseconds: 500),
+      lowerBound: 0,
+      upperBound: 100,
+    );
     tileAnimationController.addListener(tileAnimation);
-    shuffle(_tileSize);
+    gravityAnimationController.addListener(gravityAnimation);
+    tiles.shuffle(_tileSize);
   }
   late final AnimationController tileAnimationController;
+  late final AnimationController gravityAnimationController;
+  final Map<(int, int), Animation<double>> _gravityAnimations = {};
 
-  final colorsTypes = [
-    TileType.blue,
-    TileType.red,
-    TileType.green,
-    TileType.purple,
-    TileType.orange
-  ];
   Offset? _fingerStartPos;
   ({Tile tile, Moving direction, Tile destination})? activeTileInfo;
-
-  void shuffle(double tileSize) {
-    double left = 0;
-    double top = 0;
-    final random = Random();
-    for (int i = 0; i < level.numberOfRows; i++) {
-      for (int j = 0; j < level.numberOfCols; j++) {
-        if (j == 0) left = 0;
-        Tile tt;
-        do {
-          tt = Tile(
-            type: colorsTypes[random.nextInt(colorsTypes.length)],
-            row: i,
-            col: j,
-            x: left,
-            y: top,
-            size: tileSize,
-          );
-        } while (tiles.hasImmediateMatch(tt));
-        tiles.tile = tt;
-        left += tileSize;
-      }
-      top += tileSize;
-    }
-    // notifyListeners();
-  }
+  List<({(int, int) from, (int, int) to})>? fallingTiles;
 
   void tileAnimation() {
     if (tileAnimationController.isCompleted) {
-      // after animation is completed swap the tiles position on grid;
-      tiles.swap(activeTileInfo!.tile, activeTileInfo!.destination);
-      final matches = tiles.findMatches();
-      if (matches.isEmpty) {
-        // TODO : Add a swap back 🧠 not sure though 
-        tileAnimationController.reverse();
-      } else {
-        activeTileInfo = null;
-        tileAnimationController.reset();
-        tiles.removeMatches(matches);
-        notifyListeners();
-      }
+      endTileAnimation();
     }
+    moveTileAnimation();
+  }
+
+  void gravityAnimation() {
+    if (gravityAnimationController.isCompleted) {
+      if (fallingTiles != null) {
+        tiles.swapFall(fallingTiles!);
+      }
+
+      fallingTiles = null;
+      gravityAnimationController.reset();
+    }
+    tileGravityAnimation();
+  }
+
+  void moveTileAnimation() {
     if (activeTileInfo != null) {
       tiles[activeTileInfo!.tile.row][activeTileInfo!.tile.col] =
           activeTileInfo!.tile.move(
@@ -87,6 +69,52 @@ class GameController with ChangeNotifier {
       );
       notifyListeners();
     }
+  }
+
+  void endTileAnimation() {
+    if (activeTileInfo != null) {
+      // after animation is completed swap the tiles position on grid;
+      tiles.swap(activeTileInfo!.tile, activeTileInfo!.destination);
+      final matches = tiles.findMatches();
+      if (matches.isEmpty) {
+        // TODO : Add a swap back 🧠 not sure though
+        tileAnimationController.reverse();
+      } else {
+        activeTileInfo = null;
+        tileAnimationController.reset();
+        tiles.removeMatches(matches);
+        notifyListeners(); // update ui for the removed tiles .
+        afterMatchPlay();
+      }
+    }
+  }
+
+  void tileGravityAnimation() {
+    if (fallingTiles != null) {
+      for (final tile in fallingTiles!) {
+        final animation = _gravityAnimations[tile.from];
+        final distance = (tile.to.$1 - tile.from.$1) * _tileSize;
+        tiles.fall(
+          pos: tile.from,
+          distance: distance,
+          value: animation?.value ?? 0.0,
+        );
+        // print(_gravityAnimations[tile.from]);
+      }
+    }
+    notifyListeners();
+  }
+
+  void afterMatchPlay() {
+    fallingTiles = tiles.fallingTiles();
+    for (var fall in fallingTiles!) {
+      _gravityAnimations[fall.from] = Tween<double>(
+        begin: 0,
+        end: 1,
+      ).animate(gravityAnimationController);
+    }
+    print('play it ${gravityAnimationController.status}');
+    gravityAnimationController.forward();
   }
 
   void onFingerStart(DragStartDetails details) {
