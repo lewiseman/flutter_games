@@ -113,7 +113,6 @@ class GameController with ChangeNotifier {
         end: 1,
       ).animate(gravityAnimationController);
     }
-    print('play it ${gravityAnimationController.status}');
     gravityAnimationController.forward();
   }
 
