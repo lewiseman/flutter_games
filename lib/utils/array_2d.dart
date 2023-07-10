@@ -25,6 +25,7 @@ class Array2d {
   int get length => array.length;
 
   void shuffle(double tileSize) {
+    print('start');
     double left = 0;
     double top = 0;
     final random = Random();
@@ -43,10 +44,12 @@ class Array2d {
           );
         } while (hasImmediateMatch(tt));
         tile = tt;
+        print(tt);
         left += tileSize;
       }
       top += tileSize;
     }
+    print('start');
   }
 
   void swap(Tile from, Tile to) {
@@ -168,6 +171,7 @@ class Array2d {
   }
 
   List<({(int, int) from, (int, int) to})> fallingTiles() {
+    final cloned = List<List<Tile?>>.from(array);
     List<({(int, int) from, (int, int) to})> fallingTiles = [];
 
     // Check each cell for potential falling tiles
@@ -178,8 +182,11 @@ class Array2d {
 
         int destinationRow = row;
         // Find the first available empty space below the current tile
-        while (destinationRow < rows - 1 &&
-            array[destinationRow + 1][column] == null) {
+        bool ingrid() => destinationRow < rows - 1;
+        bool nextempty() => array[destinationRow + 1][column] == null;
+        // bool nextmoved() => fallingTiles
+        //     .any((element) => element.from == (destinationRow + 1, column));
+        while (ingrid() && (nextempty())) {
           destinationRow++;
         }
 

@@ -69,11 +69,15 @@ class Tile {
       row: row,
       col: col,
       x: x,
-      y: y+toadd,
+      y: y + toadd,
       size: size,
     );
   }
 
+  @override
+  String toString() {
+    return 'Tile( type: $type, row: $row, col: $col, x: $x, y: $y,size: $size)';
+  }
 }
 
 enum TileType {
